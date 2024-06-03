@@ -1,0 +1,150 @@
+Creating String and Integer Topic with Partitions and Events inside
+Note: 'show topic' should successfully show that topics/partitions/events have been successfully made
+
+create topic tidStr String
+create partition tidStr pid0
+create producer pridStr String Random
+produce event pridStr tidStr string1 pid0
+produce event pridStr tidStr string2 pid0
+create topic tidInt Integer
+create partition tidInt pid1
+create producer pridInt Integer Random
+produce event pridInt tidInt integer1 pid1
+show topic tidStr
+show topic tidInt
+
+-----------------------------------------------------------------------------------------
+
+Showing difference between Manual and Random producer (This is Manual)
+Note: 'show topic' should show that Partitions have been assigned as per 'create partition' command
+
+create topic tidStr String
+create producer pridStr String Manual
+create partition tidStr pid1
+create partition tidStr pid2
+produce event pridStr tidStr hey pid1
+produce event pridStr tidStr hello pid2
+produce event pridStr tidStr howdy pid1
+show topic tidStr
+
+-----------------------------------------------------------------------------------------
+
+Showing difference between Manual and Random producer (This is Random)
+Note: 'show topic' should show that Events have been randomly assigned to Partitions as there is no Partition indicated
+
+create topic tidStr String
+create producer pridStr String Random
+create partition tidStr pid1
+create partition tidStr pid2
+produce event pridStr tidStr hey
+produce event pridStr tidStr hello
+produce event pridStr tidStr howdy
+show topic tidStr
+
+-----------------------------------------------------------------------------------------
+
+Showing consuming one Event
+Note: second 'show topic' should reflect that event has been consumed
+
+create topic topicId String
+create partition topicId partitionId
+create producer partitionId String Random
+produce event partitionId topicId string1 partitionId
+produce event partitionId topicId string2 partitionId
+show topic topicId
+create consumer group consumerGroupId topicId Range
+create consumer consumerGroupId consumerPerson
+consume event consumerPerson partitionId
+show topic topicId
+
+-----------------------------------------------------------------------------------------
+
+Showing consuming multiple Events
+Note: second 'show topic' should reflect that several Events have been consumed
+
+create topic topicId String
+create partition topicId partitionId
+create producer partitionId String Random
+produce event partitionId topicId string1 partitionId
+produce event partitionId topicId string2 partitionId
+show topic topicId
+create consumer group consumerGroupId topicId Range
+create consumer consumerGroupId consumerPerson
+consume events consumerPerson partitionId 3
+show topic topicId
+
+-----------------------------------------------------------------------------------------
+
+Showing RoundRobin rebalance strategy when creating Consumers and deleting a Consumer
+Note: 'delete consumer group' should show how ConsumerGroup allocation has changed compared to 'show consumer group'
+
+create topic tidStr String
+create partition tidStr part1
+create partition tidStr part2
+create partition tidStr part3
+create partition tidStr part4
+create consumer group cgId tidStr RoundRobin
+create consumer cgId consumer1
+create consumer cgId consumer2
+create consumer cgId consumer3
+show consumer group cgId
+delete consumer consumer2
+
+-----------------------------------------------------------------------------------------
+
+Showing Range rebalance strategy creating Consumers and when deleting a Consumer
+Note: 'delete consumer group' should show how ConsumerGroup allocation has changed compared to 'show consumer group'
+
+create topic tidInt Integer
+create partition tidInt part1
+create partition tidInt part2
+create partition tidInt part3
+create partition tidInt part4
+create consumer group cgId tidInt Range
+create consumer cgId consumer1
+create consumer cgId consumer2
+create consumer cgId consumer3
+show consumer group cgId
+delete consumer consumer1
+
+-----------------------------------------------------------------------------------------
+
+Showing replaying events
+Note: 'replay' should only show all messages from offset up to most recently consumed message (in this case, 'this is content' to 'hello')
+
+create topic topicId String
+create partition topicId partitionId
+create producer partitionId String Random
+produce event partitionId topicId string1 partitionId
+produce event partitionId topicId string2 partitionId
+produce event partitionId topicId hello partitionId
+produce event partitionId topicId howdy partitionId
+show topic topicId
+create consumer group consumerGroupId topicId Range
+create consumer consumerGroupId consumerPerson
+consume events consumerPerson partitionId 3
+show topic topicId
+playback consumerPerson partitionId 1
+
+-----------------------------------------------------------------------------------------
+
+Showing that replaying events is dynamic
+Note: second and third 'replay' should show more events being replayed as events are consumed
+
+create topic topicId Integer
+create partition topicId partitionId
+create producer partitionId Integer Random
+produce event partitionId topicId 1 partitionId
+produce event partitionId topicId 2 partitionId
+produce event partitionId topicId 3 partitionId
+show topic topicId
+create consumer group consumerGroupId topicId Range
+create consumer consumerGroupId consumerPerson
+playback consumerPerson partitionId 1
+consume event consumerPerson partitionId
+playback consumerPerson partitionId 1
+consume event consumerPerson partitionId
+playback consumerPerson partitionId 1
+show topic topicId
+
+-----------------------------------------------------------------------------------------
